@@ -63,8 +63,6 @@ namespace D2L.CodeStyle.Analyzers.Immutability {
 				builder.UnionWith( excepts );
 			}
 
-			}
-
 			return builder.ToImmutable();
 		}
 
@@ -120,21 +118,24 @@ namespace D2L.CodeStyle.Analyzers.Immutability {
 
 			ITypeSymbol baseType = type.BaseType;
 			while( baseType != null ) {
-				// Interfaces of the base types are covered in AllInterfaces below, so we only need to get direct exceptions
-				// if they exist.
-				ImmutableHashSet<string> baseTypeExceptions;
-				if( baseType.TryGetDirectImmutableExceptions( out baseTypeExceptions ) ) {
-					builder.Add( baseType, baseTypeExceptions );
+				if( baseType.IsTypeMarkedImmutable() ) {
+					// Interfaces of the base types are covered in AllInterfaces below, so we only need to get direct exceptions
+					// if they exist.
+					var exceptions = baseType.GetDirectImmutableExceptions();
+					if( exceptions.Any() ) {
+						builder.Add( baseType, exceptions );
+					}
 				}
 				baseType = baseType.BaseType;
 			}
 
 			foreach( INamedTypeSymbol iface in type.AllInterfaces ) {
-				if( !iface.IsTypeMarkedImmutable() ) {
-					continue;
+				if( iface.IsTypeMarkedImmutable() ) {
+					var exceptions = iface.GetDirectImmutableExceptions();
+					if( exceptions.Any() ) {
+						builder.Add( iface, exceptions );
+					}
 				}
-				ImmutableHashSet<string> ifaceExceptions = iface.GetDirectImmutableExceptions();
-				builder.Add( iface, ifaceExceptions );
 			}
 
 			return builder.ToImmutable();
