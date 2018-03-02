@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -19,6 +20,9 @@ namespace D2L.CodeStyle.Analyzers.Extensions {
 			if( symbol.IsExternallyOwnedMarkedImmutableType() ) {
 				return true;
 			}
+			if( symbol.IsMarkedImmutableGeneric() ) {
+				return true;
+			}
 			if( Attributes.Objects.Immutable.IsDefined( symbol ) ) {
 				return true;
 			}
@@ -33,6 +37,49 @@ namespace D2L.CodeStyle.Analyzers.Extensions {
 
 		public static bool IsExternallyOwnedMarkedImmutableType( this ITypeSymbol symbol ) {
 			return MarkedImmutableTypes.Contains( symbol.GetFullTypeName() );
+		}
+
+		private static bool IsMarkedImmutableGeneric( this ITypeSymbol symbol ) {
+			var type = symbol as INamedTypeSymbol;
+			if( type == null ) {
+				return false;
+			}
+
+			if( !type.IsGenericType ) {
+				return false;
+			}
+
+			/*  We can have an annotation in:
+			 *  (1) symbol's assembly,
+			 *  (2) any of symbol's type arguments's assemblies
+			 */
+			if( type.ContainingAssembly.HasImmutableGenericAnnotation( type ) ) {
+				return true;
+			}
+			foreach( var typeArgument in type.TypeArguments ) {
+				if( typeArgument.ContainingAssembly.HasImmutableGenericAnnotation( type ) ) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		private static bool HasImmutableGenericAnnotation( this IAssemblySymbol assembly, INamedTypeSymbol type) {
+			var attributes = Attributes.Objects.ImmutableGeneric.GetAll( assembly );
+			foreach( var attr in attributes ) {
+
+				if( attr.ConstructorArguments.Length != 1 ) {
+					continue;
+				}
+
+				var arg = attr.ConstructorArguments[0];
+				if( arg.Value.Equals( type ) ) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		public static bool IsTypeMarkedSingleton( this ITypeSymbol symbol ) {

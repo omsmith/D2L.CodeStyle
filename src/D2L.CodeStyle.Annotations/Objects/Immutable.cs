@@ -21,6 +21,12 @@ namespace D2L.CodeStyle.Annotations {
 
 		}
 
+		[AttributeUsage( validOn: AttributeTargets.Assembly )]
+		public sealed class ImmutableGenericAttribute : Attribute {
+
+			public ImmutableGenericAttribute( Type type ) { }
+		}
+
 		[Flags]
 		public enum Except {
 
