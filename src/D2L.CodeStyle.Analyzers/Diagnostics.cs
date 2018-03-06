@@ -221,5 +221,15 @@ namespace D2L.CodeStyle.Analyzers {
 			isEnabledByDefault: true,
 			description: "JsonParamBinder uses the custom D2L JSON framework, so use JsonConvertParameterBinder (which uses Newtonsoft.Json) instead."
 		);
+
+		public static readonly DiagnosticDescriptor RegexCultureInvariant = new DiagnosticDescriptor(
+			id: "D2L0026",
+			title: "Use RegexOptions.CultureInvariant",
+			messageFormat: "Use RegexOptions.CultureInvariant when creating or matching a RegEx",
+			category: "Correctness",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true,
+			description: "RegEx usage without CultureInvariant can lead to unexpected performance cliffs, and correctness issues when ignoring case. Always use RegexOptions.CultureInvariant."
+		);
 	}
 }

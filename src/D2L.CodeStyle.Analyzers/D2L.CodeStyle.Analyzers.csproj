@@ -33,6 +33,7 @@
   <ItemGroup>
     <Compile Include="ApiUsage\JsonParamBinderAttribute\JsonParamBinderAnalyzer.cs" />
     <Compile Include="ApiUsage\JsonParamBinderAttribute\LegacyJsonParamBinderClasses.cs" />
+    <Compile Include="ApiUsage\Regex\RegexCultureInvariantAnalyzer.cs" />
     <Compile Include="Attributes.cs" />
     <Compile Include="Extensions\Microsoft.CodeAnalysis.CSharp.Syntax.cs" />
     <Compile Include="Immutability\ImmutabilityExceptionInheritanceAnalyzer.cs" />
