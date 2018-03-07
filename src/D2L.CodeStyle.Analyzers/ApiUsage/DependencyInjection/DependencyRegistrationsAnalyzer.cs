@@ -2,6 +2,7 @@
 using System.Linq;
 using D2L.CodeStyle.Analyzers.ApiUsage.DependencyInjection.Domain;
 using D2L.CodeStyle.Analyzers.Extensions;
+using D2L.CodeStyle.Analyzers.Immutability;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -111,7 +112,14 @@ namespace D2L.CodeStyle.Analyzers.ApiUsage.DependencyInjection {
 			if( registration.ObjectScope == ObjectScope.Singleton ) {
 				var typesToInspect = GetTypesRequiredToBeImmutableForSingletonRegistration( registration );
 				foreach( var type in typesToInspect ) {
-					if( !type.IsNullOrErrorType() && !type.IsTypeMarkedImmutable() ) {
+
+					// We require full immutability here,
+					// because we don't know if it's a concrete type
+					//
+					// TODO: could make this better by exposing the minimum
+					// scope required for each type
+					var immutabilityScope = type.GetImmutabilityScope();
+					if( !type.IsNullOrErrorType() && immutabilityScope != ImmutabilityScope.SelfAndChildren ) {
 						var diagnostic = Diagnostic.Create(
 							Diagnostics.UnsafeSingletonRegistration,
 							ctx.Node.GetLocation(),
