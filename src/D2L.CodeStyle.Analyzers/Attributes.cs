@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using D2L.CodeStyle.Analyzers.Extensions;
 using Microsoft.CodeAnalysis;
 
@@ -17,6 +17,7 @@ namespace D2L.CodeStyle.Analyzers {
 		internal static class Objects {
 			internal static readonly RoslynAttribute Immutable = new RoslynAttribute( "D2L.CodeStyle.Annotations.Objects.Immutable" );
 			internal static readonly RoslynAttribute ImmutableGeneric = new RoslynAttribute( "D2L.CodeStyle.Annotations.Objects.ImmutableGenericAttribute" );
+			internal static readonly RoslynAttribute ImmutableBaseClass = new RoslynAttribute( "D2L.CodeStyle.Annotations.Objects.ImmutableBaseClassAttribute" );
 		}
 		internal static class Mutability {
 			internal static readonly RoslynAttribute Audited = new RoslynAttribute( "D2L.CodeStyle.Annotations.Mutability.AuditedAttribute" );

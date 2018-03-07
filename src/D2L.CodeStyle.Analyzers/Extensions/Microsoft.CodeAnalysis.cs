@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using D2L.CodeStyle.Analyzers.Immutability;
 using Microsoft.CodeAnalysis;
 
 namespace D2L.CodeStyle.Analyzers.Extensions {
@@ -16,7 +17,19 @@ namespace D2L.CodeStyle.Analyzers.Extensions {
 			"System.Text.UTF8Encoding"
 		);
 
-		public static bool IsTypeMarkedImmutable( this ITypeSymbol symbol ) {
+		public static ImmutabilityScope GetImmutabilityScope( this ITypeSymbol type ) {
+			if( type.IsTypeMarkedImmutable() ) {
+				return ImmutabilityScope.SelfAndChildren;
+			}
+
+			if( type.IsTypeMarkedImmutableBaseClass() ) {
+				return ImmutabilityScope.Self;
+			}
+
+			return ImmutabilityScope.None;
+		}
+
+		private static bool IsTypeMarkedImmutable( this ITypeSymbol symbol ) {
 			if( symbol.IsExternallyOwnedMarkedImmutableType() ) {
 				return true;
 			}
@@ -30,6 +43,13 @@ namespace D2L.CodeStyle.Analyzers.Extensions {
 				return true;
 			}
 			if( symbol.BaseType != null && IsTypeMarkedImmutable( symbol.BaseType ) ) {
+				return true;
+			}
+			return false;
+		}
+
+		private static bool IsTypeMarkedImmutableBaseClass( this ITypeSymbol symbol ) {
+			if( Attributes.Objects.ImmutableBaseClass.IsDefined( symbol ) ) {
 				return true;
 			}
 			return false;

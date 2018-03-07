@@ -1,4 +1,4 @@
-﻿// analyzer: D2L.CodeStyle.Analyzers.Immutability.ImmutabilityAnalyzer
+// analyzer: D2L.CodeStyle.Analyzers.Immutability.ImmutabilityAnalyzer
 
 using System;
 using D2L.CodeStyle.Annotations;
@@ -14,13 +14,11 @@ namespace D2L.LP.Extensibility.Activation.Domain {
 
 namespace D2L.CodeStyle.Annotations {
 	public static class Objects {
-		public sealed class Immutable : Attribute {
+		public abstract class ImmutableAttributeBase : Attribute { 
 			public Except Except { get; set; }
 		}
-		[AttributeUsage( validOn: AttributeTargets.Assembly )]
-		public sealed class ImmutableGenericAttribute : Attribute {
-			public ImmutableGenericAttribute( Type type ) { }
-		}
+		public sealed class Immutable : ImmutableAttributeBase { }
+		public sealed class ImmutableBaseClassAttribute : ImmutableAttributeBase { }
 
 		[Flags]
 		public enum Except {
@@ -65,6 +63,38 @@ namespace SpecTests {
 			[Mutability.Unaudited( Because.ItsSketchy )]
 			private int m_auditedBad;
 		}
+	}
+
+	class ImmutableBaseClassTests {
+
+		[Objects.ImmutableBaseClass]
+		class ImmutableBaseClass { }
+
+		[Objects.Immutable]
+		class ConcretelyImmutable { }
+
+		[Objects.ImmutableBaseClass]
+		class /* ImmutableClassIsnt('m_bad' is not read-only) */ MutableBaseClassOnly /**/ {
+			private int m_bad;
+		}
+
+		class /* ImmutableClassIsnt('m_bad' is not read-only) */ ShouldBeRequiredImmutable /**/ : ConcretelyImmutable {
+			private int m_bad;
+		}
+		class ShouldNotBeRequiredImmutable2 : ImmutableBaseClass {
+			private int m_bad;
+		}
+
+		[Objects.Immutable]
+		class /* ImmutableClassIsnt('m_bad''s type ('SpecTests.ImmutableBaseClassTests.ImmutableBaseClass') is not sealed) */ MutableBecauseHasFieldOfImmutableBaseClassOnly /**/ {
+			private readonly ImmutableBaseClass m_bad;
+		}
+
+		[Objects.Immutable]
+		class ImmutableBecauseHasFieldOfConcreteImmutableBaseClassOnly {
+			private readonly ImmutableBaseClass m_bad = new ImmutableBaseClass();
+		}
+
 	}
 
 	class GenericsTests {
