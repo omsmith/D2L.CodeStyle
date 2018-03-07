@@ -137,6 +137,10 @@ namespace SpecTests {
 		public sealed class /* ImmutableClassIsnt('m_unsafeFactory''s type ('SpecTests.GenericsTests.IFactory') is an interface that is not marked with `[Objects.Immutable]`) */ UsesUnsafeTypeArg /**/ {
 			private readonly IFactory<string> m_unsafeFactory;
 		}
+
+		public sealed class /* ImmutableClassIsnt('bad' is not read-only) */ MutableButSubClassesImmutableGeneric /**/ : IFactory<Version> {
+			private int bad;
+		}
 		#endregion
 
 		#region No exponential worst case (thanks cache)
