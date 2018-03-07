@@ -135,8 +135,8 @@ namespace SpecTests {
 			reg.ConfigureInstancePlugins<ImmutableThing, DefaultExtensionPoint<ImmutableThing>>( ObjectScope.Singleton );
 			reg.RegisterPluginExtensionPoint<DefaultExtensionPoint<ImmutableThing>, ImmutableThing>( ObjectScope.Singleton );
 			reg.RegisterPlugin<DefaultExtensionPoint<ImmutableThing>, IMarkedSingleton, ImmutableThing>( ObjectScope.Singleton );
-			reg.RegisterDynamicObjectFactory<ICreatedByDynamicFactory, ThingThatIsCreatedByDynamicObjectFactoryViaMarkedThing, string>( ObjectScope.Singleton );
-			reg.RegisterDynamicObjectFactory<ICreatedByDynamicFactory, ThingThatIsCreatedByDynamicObjectFactoryViaMarkedThing, string, string>( ObjectScope.Singleton );
+			reg.RegisterDynamicObjectFactory<ICreatedByDynamicFactory, ThingThatIsCreatedByDynamicObjectFactoryViaImmutableThing, string>( ObjectScope.Singleton );
+			reg.RegisterDynamicObjectFactory<ICreatedByDynamicFactory, ThingThatIsCreatedByDynamicObjectFactoryViaImmutableThing, string, string>( ObjectScope.Singleton );
 			reg.RegisterSubInterface<ISingleton, IImmutableSubSingleton>( ObjectScope.Singleton );
 
 			// And factory Singletons or singletons where concrete type is not resolved inspect the interface
@@ -148,8 +148,8 @@ namespace SpecTests {
 			reg.RegisterPluginFactory<DefaultExtensionPoint<IImmutableSingleton>, IImmutableSingleton, NonExistentTypeOrInTheMiddleOfTyping>( ObjectScope.Singleton );
 
 			// Dynamic object factory registrations inspect the concrete object's ctor parameters
-			/* UnsafeSingletonRegistration(SpecTests.ISingleton) */ reg.RegisterDynamicObjectFactory<ICreatedByDynamicFactory, ThingThatIsCreatedByDynamicObjectFactoryViaUnmarkedThing, string, string>( ObjectScope.Singleton ) /**/;
-			/* UnsafeSingletonRegistration(SpecTests.ISingleton) */ reg.RegisterDynamicObjectFactory<ICreatedByDynamicFactory, ThingThatIsCreatedByDynamicObjectFactoryViaUnmarkedThing, string>( ObjectScope.Singleton ) /**/;
+			/* UnsafeSingletonRegistration(SpecTests.ISingleton) */ reg.RegisterDynamicObjectFactory<ICreatedByDynamicFactory, ThingThatIsCreatedByDynamicObjectFactoryViaMutableThing, string, string>( ObjectScope.Singleton ) /**/;
+			/* UnsafeSingletonRegistration(SpecTests.ISingleton) */ reg.RegisterDynamicObjectFactory<ICreatedByDynamicFactory, ThingThatIsCreatedByDynamicObjectFactoryViaMutableThing, string>( ObjectScope.Singleton ) /**/;
 
 			// Dyanamic object factory registrations that error out inspect IFactory<TDependencyType>
 			/* UnsafeSingletonRegistration(D2L.LP.Extensibility.Activation.Domain.IFactory<SpecTests.ICreatedByDynamicFactory>) */ reg.RegisterDynamicObjectFactory<ICreatedByDynamicFactory, ThingThatIsSupposedToBeCreatedByDynamicFactoryButDoesntHavePublicConstructor, string>( ObjectScope.Singleton ) /**/;
@@ -179,8 +179,8 @@ namespace SpecTests {
 
 			// DynamicObjectFactory registrations at non-Singleton scope are safe,
 			// because the implementation is generated, so it will never be marked.
-			reg.RegisterDynamicObjectFactory<ICreatedByDynamicFactory, ThingThatIsCreatedByDynamicObjectFactoryViaMarkedThing, string>( ObjectScope.WebRequest );
-			reg.RegisterDynamicObjectFactory<ICreatedByDynamicFactory, ThingThatIsCreatedByDynamicObjectFactoryViaUnmarkedThing, string>( ObjectScope.WebRequest );
+			reg.RegisterDynamicObjectFactory<ICreatedByDynamicFactory, ThingThatIsCreatedByDynamicObjectFactoryViaImmutableThing, string>( ObjectScope.WebRequest );
+			reg.RegisterDynamicObjectFactory<ICreatedByDynamicFactory, ThingThatIsCreatedByDynamicObjectFactoryViaMutableThing, string>( ObjectScope.WebRequest );
 
 			// Unhandled registration methods should raise a diagnostic.
 			/* RegistrationKindUnknown */ reg.UnhandledRegisterMethod() /**/;
@@ -233,15 +233,15 @@ namespace SpecTests {
 
 	public interface ICreatedByDynamicFactory { }
 
-	public class ThingThatIsCreatedByDynamicObjectFactoryViaMarkedThing : ICreatedByDynamicFactory {
-		public ThingThatIsCreatedByDynamicObjectFactoryViaMarkedThing(
+	public class ThingThatIsCreatedByDynamicObjectFactoryViaImmutableThing : ICreatedByDynamicFactory {
+		public ThingThatIsCreatedByDynamicObjectFactoryViaImmutableThing(
 			string randomArg,
 			[Dependency] ImmutableThing injected
 		) { }
 	}
 
-	public class ThingThatIsCreatedByDynamicObjectFactoryViaUnmarkedThing : ICreatedByDynamicFactory {
-		public ThingThatIsCreatedByDynamicObjectFactoryViaUnmarkedThing(
+	public class ThingThatIsCreatedByDynamicObjectFactoryViaMutableThing : ICreatedByDynamicFactory {
+		public ThingThatIsCreatedByDynamicObjectFactoryViaMutableThing(
 			string randomArg,
 			[Dependency] ISingleton injected
 		) { }
