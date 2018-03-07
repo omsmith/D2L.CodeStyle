@@ -73,11 +73,12 @@ namespace D2L.CodeStyle.Analyzers.Extensions {
 			 *  (1) symbol's assembly,
 			 *  (2) any of symbol's type arguments's assemblies
 			 */
-			if( type.ContainingAssembly.HasImmutableGenericAnnotation( type ) ) {
+			AttributeData ignore;
+			if( type.ContainingAssembly.TryGetImmutableGenericAnnotation( type, out ignore ) ) {
 				return true;
 			}
 			foreach( var typeArgument in type.TypeArguments ) {
-				if( typeArgument.ContainingAssembly.HasImmutableGenericAnnotation( type ) ) {
+				if( typeArgument.ContainingAssembly.TryGetImmutableGenericAnnotation( type, out ignore ) ) {
 					return true;
 				}
 			}
@@ -85,7 +86,9 @@ namespace D2L.CodeStyle.Analyzers.Extensions {
 			return false;
 		}
 
-		private static bool HasImmutableGenericAnnotation( this IAssemblySymbol assembly, INamedTypeSymbol type) {
+		private static bool TryGetImmutableGenericAnnotation( this IAssemblySymbol assembly, ITypeSymbol type, out AttributeData attribute ) {
+			attribute = null;
+
 			var attributes = Attributes.Objects.ImmutableGeneric.GetAll( assembly );
 			foreach( var attr in attributes ) {
 
@@ -95,12 +98,31 @@ namespace D2L.CodeStyle.Analyzers.Extensions {
 
 				var arg = attr.ConstructorArguments[0];
 				if( arg.Value.Equals( type ) ) {
+					attribute = attr;
 					return true;
 				}
 			}
 
 			return false;
 		}
+
+		internal static IEnumerable<AttributeData> GetAllImmutableAttributesApplied( this ITypeSymbol type ) {
+			var immutable = Attributes.Objects.Immutable.GetAll( type ).FirstOrDefault();
+			if( immutable != null ) {
+				yield return immutable;
+			}
+
+			var immutableBaseClass = Attributes.Objects.ImmutableBaseClass.GetAll( type ).FirstOrDefault();
+			if( immutableBaseClass != null ) {
+				yield return immutableBaseClass;
+			}
+
+			AttributeData immutableGeneric;
+			if( type.ContainingAssembly.TryGetImmutableGenericAnnotation( type, out immutableGeneric ) ) {
+				yield return immutableGeneric;
+			}
+		}
+
 
 		public static bool IsTypeMarkedSingleton( this ITypeSymbol symbol ) {
 			if( Attributes.Singleton.IsDefined( symbol ) ) {
