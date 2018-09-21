@@ -351,5 +351,15 @@ namespace D2L.CodeStyle.Analyzers {
 			isEnabledByDefault: true,
 			description: "The implications of [Immutable] apply transitively to derived classes and interface implementations. We require that [Immutable] is explicity applied transitively for clarity and simplicity."
 		);
+
+		public static readonly DiagnosticDescriptor UseAnIDbTInstead = new DiagnosticDescriptor(
+			id: "D2L0041",
+			title: "Use an IDb<T> instead",
+			messageFormat: "ITObjectDatabaseFactory.Create usage should be replaced with an IDb<T> injection",
+			category: "",
+			defaultSeverity: DiagnosticSeverity.Warning,
+			isEnabledByDefault: true,
+			description: "ITObjectDatabaseFactory.Create usage should be replaced with an IDb<T> injection"
+		);
 	}
 }
