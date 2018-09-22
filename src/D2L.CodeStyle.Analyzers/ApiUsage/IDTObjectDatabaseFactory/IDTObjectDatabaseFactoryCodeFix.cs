@@ -54,17 +54,26 @@ namespace D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabaseFactory {
 				foreach( var diagnostic in context.Diagnostics ) {
 					var invocationSpan = diagnostic.Location.SourceSpan;
 
-					var invocation = root.FindNode( invocationSpan ) as InvocationExpressionSyntax;
+					SyntaxNode invocationNode = root.FindNode( invocationSpan );
+					InvocationExpressionSyntax invocation;
+					switch( invocationNode ) {
+						case InvocationExpressionSyntax invocationNodeExpression:
+							invocation = invocationNodeExpression;
+							break;
+						case ArgumentSyntax argumentSyntax:
+							invocation = argumentSyntax.Expression as InvocationExpressionSyntax;
+							break;
+						default:
+							continue;
+					}
 
-					if( !IDTObjectDatabaseFactoryAnalyzer.TryGetDbType( invocation, out GenericNameSyntax dbTypeReference ) ) {
+					if( !IDTObjectDatabaseFactoryAnalyzer.TryGetDbType( model, invocation, out GenericNameSyntax dbTypeReference ) ) {
 						continue;
 					}
 
 					DocumentEditor editor = await DocumentEditor
 						.CreateAsync( context.Document, context.CancellationToken )
 						.ConfigureAwait( false );
-
-					editor.ReplaceNode( invocation, MDbReference );
 
 
 
@@ -77,24 +86,21 @@ namespace D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabaseFactory {
 						.ConfigureAwait( false )
 					);
 
-
-					throw new Exception( dbFactoryDeclaration.Kind().ToString() );
-
 					switch( dbFactoryDeclaration ) {
 						case VariableDeclaratorSyntax dbFactoryVariableDeclaration:
-							if( !await TryFixFieldReference( editor, dbTypeReference, dbFactoryDeclarationSymbol, dbFactoryVariableDeclaration, context.CancellationToken ).ConfigureAwait( false ) ) {
+							if( !await TryFixFieldReference( editor, invocation, dbTypeReference, dbFactoryDeclarationSymbol, dbFactoryVariableDeclaration, context.CancellationToken ).ConfigureAwait( false ) ) {
 								continue;
 							}
 							break;
-						case ArgumentSyntax dbFactoryArgumentSyntax:
-							if( !await TryFixArgument( editor, dbTypeReference, dbFactoryDeclarationSymbol, context.CancellationToken ).ConfigureAwait( false ) ) {
+						case ParameterSyntax dbFactoryArgumentSyntax:
+							if( !await TryFixParameter( editor, invocation, dbTypeReference, dbFactoryDeclarationSymbol, context.CancellationToken ).ConfigureAwait( false ) ) {
 								continue;
 							}
 							break;
 						default:
-							throw new Exception( dbFactoryDeclaration.Kind().ToString() );
+							continue;
+							//throw new Exception( $"{ dbFactoryDeclaration.Kind() }   -  { dbFactoryDeclaration.SyntaxTree.GetLocation( dbFactoryDeclaration.Span ).GetLineSpan() }" );
 					}
-
 					context.RegisterCodeFix(
 						CodeAction.Create(
 							title: "Inject IDb<T>",
@@ -104,15 +110,16 @@ namespace D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabaseFactory {
 					);
 
 				}
-			} catch { }
+			} catch { throw; }
 		}
 
+		private static readonly IdentifierNameSyntax DbReference = SyntaxFactory.IdentifierName( "db" );
 		private static readonly IdentifierNameSyntax MDbReference = SyntaxFactory.IdentifierName( "m_db" );
 		private static readonly AssignmentExpressionSyntax MDbAssignment = SyntaxFactory
 			.AssignmentExpression(
 				SyntaxKind.SimpleAssignmentExpression,
 				MDbReference,
-				SyntaxFactory.IdentifierName( "db" )
+				DbReference
 			);
 
 		private static MemberDeclarationSyntax MDbDeclartion( GenericNameSyntax dbTypeReference ) {
@@ -139,6 +146,7 @@ namespace D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabaseFactory {
 
 		private static async Task<bool> TryFixFieldReference(
 			DocumentEditor editor,
+			InvocationExpressionSyntax invocation,
 			GenericNameSyntax dbTypeReference,
 			ISymbol dbFactoryDeclarationSymbol,
 			VariableDeclaratorSyntax dbFactoryVariableDeclaration,
@@ -153,40 +161,17 @@ namespace D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabaseFactory {
 				MDbDeclartion( dbTypeReference ).WithLeadingTrivia( dbFactoryDeclaration.GetLeadingTrivia() )
 			);
 
-
-
-			ImmutableArray<IMethodSymbol> classConstructors = dbFactoryDeclarationSymbol
-				.ContainingType
-				.Constructors;
-			if( classConstructors.Length != 1 ) {
+			if( !await TryReplaceConstructorInjection(
+				editor, dbTypeReference, dbFactoryDeclarationSymbol, cancellationToken
+			).ConfigureAwait( false ) ) {
 				return false;
 			}
 
-			IMethodSymbol constructor = classConstructors[ 0 ];
+			
 
-			ImmutableArray<IParameterSymbol> dbFactoryParameters = constructor
-				.Parameters
-				.Where( p => p.Type.ToDisplayString() == "D2L.LP.LayeredArch.Data.IDTObjectDatabaseFactory" )
-				.ToImmutableArray();
-
-			if( dbFactoryParameters.Length != 1 ) {
+			if( !TryGetConstructorOfContainingType( dbFactoryDeclarationSymbol, out IMethodSymbol constructor ) ) {
 				return false;
 			}
-
-			IParameterSymbol dbFactoryParameter = dbFactoryParameters[ 0 ];
-
-			SyntaxNode dbFactoryInjection = await dbFactoryParameter
-				.DeclaringSyntaxReferences[ 0 ]
-				.GetSyntaxAsync( cancellationToken )
-				.ConfigureAwait( false );
-
-			editor.ReplaceNode(
-				dbFactoryInjection,
-				DbInjection( dbTypeReference )
-					.WithTriviaFrom( dbFactoryInjection )
-			);
-
-
 
 			SyntaxNode constructorSyntax = await constructor
 				.DeclaringSyntaxReferences[ 0 ]
@@ -214,16 +199,77 @@ namespace D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabaseFactory {
 				MDbAssignment.WithTriviaFrom( dbAssignment )
 			);
 
+			editor.ReplaceNode( invocation, MDbReference );
+
 			return true;
 		}
 
-		private static async Task<bool> TryFixArgument(
+		private static async Task<bool> TryFixParameter(
+			DocumentEditor editor,
+			InvocationExpressionSyntax invocation,
+			GenericNameSyntax dbTypeReference,
+			ISymbol dbFactoryDeclarationSymbol,
+			CancellationToken cancellationToken
+		) {
+			if( !await TryReplaceConstructorInjection(
+				editor, dbTypeReference, dbFactoryDeclarationSymbol, cancellationToken
+			).ConfigureAwait( false ) ) {
+				return false;
+			}
+
+			editor.ReplaceNode( invocation, DbReference );
+
+			return true;
+		}
+
+		private static async Task<bool> TryReplaceConstructorInjection(
 			DocumentEditor editor,
 			GenericNameSyntax dbTypeReference,
 			ISymbol dbFactoryDeclarationSymbol,
 			CancellationToken cancellationToken
 		) {
-			throw new NotImplementedException();
+			if( !TryGetConstructorOfContainingType( dbFactoryDeclarationSymbol, out IMethodSymbol constructor ) ) {
+				return false;
+			}
+
+			ImmutableArray<IParameterSymbol> dbFactoryParameters = constructor
+				.Parameters
+				.Where( p => p.Type.ToDisplayString() == "D2L.LP.LayeredArch.Data.IDTObjectDatabaseFactory" )
+				.ToImmutableArray();
+
+			if( dbFactoryParameters.Length != 1 ) {
+				return false;
+			}
+
+			IParameterSymbol dbFactoryParameter = dbFactoryParameters[ 0 ];
+
+			SyntaxNode dbFactoryInjection = await dbFactoryParameter
+				.DeclaringSyntaxReferences[ 0 ]
+				.GetSyntaxAsync( cancellationToken )
+				.ConfigureAwait( false );
+
+			editor.ReplaceNode(
+				dbFactoryInjection,
+				DbInjection( dbTypeReference )
+					.WithTriviaFrom( dbFactoryInjection )
+			);
+
+			return true;
+		}
+
+		private static bool TryGetConstructorOfContainingType( ISymbol symbol, out IMethodSymbol constructorSymbol ) {
+			ImmutableArray<IMethodSymbol> classConstructors = symbol
+				.ContainingType
+				.Constructors
+				.Where( x => x.Parameters.Length != 0 )
+				.ToImmutableArray();
+			if( classConstructors.Length != 1 ) {
+				constructorSymbol = null;
+				return false;
+			}
+
+			constructorSymbol = classConstructors[ 0 ];
+			return true;
 		}
 	}
 }

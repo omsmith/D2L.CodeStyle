@@ -92,7 +92,7 @@ namespace D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabaseFactory {
 				return;
 			}
 
-			if( !TryGetDbType( root, out GenericNameSyntax dbTypeReference ) ) {
+			if( !TryGetDbType( context.SemanticModel, root, out GenericNameSyntax dbTypeReference ) ) {
 				return;
 			}
 
@@ -129,7 +129,7 @@ namespace D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabaseFactory {
 				&& method.Parameters.Length == 1;
 		}
 
-		private static bool TryGetSplitName( ExpressionSyntax syntaxNode, out string splitName ) {
+		private static bool TryGetSplitName( SemanticModel model, ExpressionSyntax syntaxNode, out string splitName ) {
 			if( !( syntaxNode is InvocationExpressionSyntax invocationSyntaxNode ) ) {
 				splitName = null;
 				return false;
@@ -143,17 +143,18 @@ namespace D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabaseFactory {
 
 			ExpressionSyntax splitNameArgument = arguments[ 0 ].Expression;
 
-			if( !splitNameArgument.IsKind( SyntaxKind.StringLiteralExpression ) ) {
+			Optional<object> maybeSplitName = model.GetConstantValue( splitNameArgument );
+			if( !maybeSplitName.HasValue ) {
 				splitName = null;
 				return false;
 			}
 
-			splitName = ( ( LiteralExpressionSyntax )splitNameArgument ).ToString().Trim( '"' );
+			splitName = ( string )maybeSplitName.Value;
 			return true;
 		}
 
-		internal static bool TryGetDbType( ExpressionSyntax syntaxNode, out GenericNameSyntax syntax ) {
-			if( !TryGetSplitName( syntaxNode, out string splitName ) ) {
+		internal static bool TryGetDbType( SemanticModel model, ExpressionSyntax syntaxNode, out GenericNameSyntax syntax ) {
+			if( !TryGetSplitName( model, syntaxNode, out string splitName ) ) {
 				syntax = null;
 				return false;
 			}
