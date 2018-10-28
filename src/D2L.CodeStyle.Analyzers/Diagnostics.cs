@@ -515,5 +515,14 @@ namespace D2L.CodeStyle.Analyzers {
 			isEnabledByDefault: true
 		);
 
+		public static readonly DiagnosticDescriptor ConstructorShouldTakeIDbT = new DiagnosticDescriptor(
+			id: "D2L9998",
+			title: "Constructor should take IDb<T>",
+			description: "Constructor should take IDb<T>",
+			messageFormat: "Constructor should take IDb<T>",
+			category: "Correctness",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true
+		);
 	}
 }
