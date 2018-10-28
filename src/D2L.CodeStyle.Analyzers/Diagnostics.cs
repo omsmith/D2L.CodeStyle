@@ -505,5 +505,15 @@ namespace D2L.CodeStyle.Analyzers {
 			isEnabledByDefault: true
 		);
 
+		public static readonly DiagnosticDescriptor UselessDbAssignment = new DiagnosticDescriptor(
+			id: "D2L9999",
+			title: "Useless DB Assignment",
+			description: "Useless DB Assignment",
+			messageFormat: "Useless DB Assignment",
+			category: "Correctness",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true
+		);
+
 	}
 }
