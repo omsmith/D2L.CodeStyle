@@ -505,5 +505,14 @@ namespace D2L.CodeStyle.Analyzers {
 			isEnabledByDefault: true
 		);
 
+		public static readonly DiagnosticDescriptor UselessFactory = new DiagnosticDescriptor(
+			id: "D2L9997",
+			title: "This factory is useless",
+			description: "This factory is useless",
+			messageFormat: "This factory is useless",
+			category: "Correctness",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true
+		);
 	}
 }
