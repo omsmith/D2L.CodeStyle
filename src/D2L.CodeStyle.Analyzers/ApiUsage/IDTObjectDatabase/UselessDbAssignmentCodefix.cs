@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 
-namespace D2L.CodeStyle.Analyzers.ApiUsage {
+namespace D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabase {
 
 	[ExportCodeFixProvider(
 		LanguageNames.CSharp,

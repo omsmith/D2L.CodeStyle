@@ -505,8 +505,18 @@ namespace D2L.CodeStyle.Analyzers {
 			isEnabledByDefault: true
 		);
 
+		public static readonly DiagnosticDescriptor UseAnIDbTInstead = new DiagnosticDescriptor(
+			id: "D2LXX01",
+			title: "Should inject IDb<T>",
+			description: "Should inject IDb<T>",
+			messageFormat: "Should inject IDb<T>",
+			category: "Correctness",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true
+		);
+
 		public static readonly DiagnosticDescriptor UselessDbAssignment = new DiagnosticDescriptor(
-			id: "D2L9999",
+			id: "D2LXX02",
 			title: "Useless DB Assignment",
 			description: "Useless DB Assignment",
 			messageFormat: "Useless DB Assignment",
@@ -516,7 +526,7 @@ namespace D2L.CodeStyle.Analyzers {
 		);
 
 		public static readonly DiagnosticDescriptor ConstructorShouldTakeIDbT = new DiagnosticDescriptor(
-			id: "D2L9998",
+			id: "D2LXX03",
 			title: "Constructor should take IDb<T>",
 			description: "Constructor should take IDb<T>",
 			messageFormat: "Constructor should take IDb<T>",

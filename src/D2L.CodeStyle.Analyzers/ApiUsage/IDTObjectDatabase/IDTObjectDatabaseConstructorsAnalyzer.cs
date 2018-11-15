@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using D2L.CodeStyle.Analyzers.Extensions;
 
-namespace D2L.CodeStyle.Analyzers.ApiUsage {
+namespace D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabase {
 	[DiagnosticAnalyzer( LanguageNames.CSharp )]
 	internal sealed class IDTObjectDatabaseConstructorsAnalyzer : DiagnosticAnalyzer {
 		internal const string PROP_DB_TYPE = "DbType";

@@ -1,4 +1,4 @@
-﻿// analyzer: D2L.CodeStyle.Analyzers.ApiUsage.UselessDbAssignmentAnalyzer
+﻿// analyzer: D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabase.UselessDbAssignmentAnalyzer
 
 namespace D2L.LP.LayeredArch.Data {
 	public interface IDTObjectDatabase { };

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Text;
 
-namespace D2L.CodeStyle.Analyzers.ApiUsage {
+namespace D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabase {
 
 	[ExportCodeFixProvider(
 		LanguageNames.CSharp,
