@@ -22,10 +22,11 @@ namespace D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabase {
 			// Cache some important type lookups
 			var factoryType = context.Compilation.GetTypeByMetadataName( "D2L.LP.LayeredArch.Data.IDTObjectDatabaseFactory" );
 			var factoryExtensionsType = context.Compilation.GetTypeByMetadataName( "D2L.LP.LayeredArch.Data.IDTObjectDatabaseFactoryExtensions" );
+			var factoryConcreteType = context.Compilation.GetTypeByMetadataName( "D2L.LP.LayeredArch.Data.DatabaseFactory" );
 
 			// If this type lookup failed then SingletonLocator cannot resolve
 			// and we don't need to register our analyzer.
-			if( factoryType.IsNullOrErrorType() && factoryExtensionsType.IsNullOrErrorType() ) {
+			if( factoryType.IsNullOrErrorType() && factoryExtensionsType.IsNullOrErrorType() && factoryConcreteType.IsNullOrErrorType() ) {
 				return;
 			}
 
@@ -44,6 +45,10 @@ namespace D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabase {
 				}
 
 				if( !factoryExtensionsType.IsNullOrErrorType() && other == factoryExtensionsType ) {
+					return true;
+				}
+
+				if( !factoryConcreteType.IsNullOrErrorType() && other == factoryConcreteType ) {
 					return true;
 				}
 
@@ -101,26 +106,13 @@ namespace D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabase {
 			);
 		}
 
-		private static ExpressionSyntax GetRootNode( SyntaxNodeAnalysisContext context ) {
-			//It turns out that depending on how you call the locator, it might contain any of:
-			//* a SimpleMemberAccessExpression
-			//* an InvocationExpression
-			//* an InvocationExpression wrapped around a SimpleMemberAccessExpression
-			//We want to count each of these as a single error (avoid double counting the last case)
-			ExpressionSyntax root = context.Node as InvocationExpressionSyntax;
+		private static InvocationExpressionSyntax GetRootNode( SyntaxNodeAnalysisContext context ) {
+			InvocationExpressionSyntax root = context.Node as InvocationExpressionSyntax;
 			if( root != null ) {
 				return root;
 			}
 
-			root = context.Node as MemberAccessExpressionSyntax;
-			if( root == null ) {
-				return null;
-			}
-
-			if( root.Parent.IsKind( SyntaxKind.InvocationExpression ) ) {
-				return null;
-			}
-			return root;
+			return null;
 		}
 
 		private static bool IsDbCreate( IMethodSymbol method ) {
@@ -191,6 +183,51 @@ namespace D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabase {
 
 			if( splitName.Equals( "Warehouse", StringComparison.OrdinalIgnoreCase ) ) {
 				syntax = ( GenericNameSyntax )SyntaxFactory.ParseExpression( "IDb<Split.Warehouse>" );
+				return true;
+			}
+
+			syntax = null;
+			return false;
+		}
+
+		internal static bool TryGetDbFactoryInvocation( SemanticModel model, ExpressionSyntax syntaxNode, out ExpressionSyntax syntax ) {
+			if( !TryGetSplitName( model, syntaxNode, out string splitName ) ) {
+				syntax = null;
+				return false;
+			}
+
+			if( splitName.Equals( "Main", StringComparison.OrdinalIgnoreCase ) ) {
+				syntax = SyntaxFactory.ParseExpression( "DbFactory.Create<Split.Main>()" );
+				return true;
+			}
+
+			if( splitName.Equals( "Analytics", StringComparison.OrdinalIgnoreCase ) ) {
+				syntax = SyntaxFactory.ParseExpression( "DbFactory.Create<Split.Analytics>()" );
+				return true;
+			}
+
+			if( splitName.Equals( "Logging", StringComparison.OrdinalIgnoreCase ) ) {
+				syntax = SyntaxFactory.ParseExpression( "DbFactory.Create<Split.Logging>()" );
+				return true;
+			}
+
+			if( splitName.Equals( "Lor", StringComparison.OrdinalIgnoreCase ) ) {
+				syntax = SyntaxFactory.ParseExpression( "DbFactory.Create<Split.Lor>()" );
+				return true;
+			}
+
+			if( splitName.Equals( "HoldingTank", StringComparison.OrdinalIgnoreCase ) ) {
+				syntax = SyntaxFactory.ParseExpression( "DbFactory.Create<Split.HoldingTank>()" );
+				return true;
+			}
+
+			if( splitName.Equals( "Reporting", StringComparison.OrdinalIgnoreCase ) ) {
+				syntax = SyntaxFactory.ParseExpression( "DbFactory.Create<Split.Reporting>()" );
+				return true;
+			}
+
+			if( splitName.Equals( "Warehouse", StringComparison.OrdinalIgnoreCase ) ) {
+				syntax = SyntaxFactory.ParseExpression( "DbFactory.Create<Split.Warehouse>()" );
 				return true;
 			}
 

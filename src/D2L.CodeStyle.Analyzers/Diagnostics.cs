@@ -534,5 +534,15 @@ namespace D2L.CodeStyle.Analyzers {
 			defaultSeverity: DiagnosticSeverity.Error,
 			isEnabledByDefault: true
 		);
+
+		public static readonly DiagnosticDescriptor DbAssignment = new DiagnosticDescriptor(
+			id: "D2LXX04",
+			title: "Update DB Assignment Type",
+			description: "Update DB Assignment Type",
+			messageFormat: "Update DB Assignment Type",
+			category: "Correctness",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true
+		);
 	}
 }

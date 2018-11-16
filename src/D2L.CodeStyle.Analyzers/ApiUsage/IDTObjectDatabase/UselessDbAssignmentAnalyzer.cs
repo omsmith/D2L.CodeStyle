@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace D2L.CodeStyle.Analyzers.ApiUsage {
+namespace D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabase {
 	[DiagnosticAnalyzer( LanguageNames.CSharp )]
 	internal sealed class UselessDbAssignmentAnalyzer : DiagnosticAnalyzer {
 		public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

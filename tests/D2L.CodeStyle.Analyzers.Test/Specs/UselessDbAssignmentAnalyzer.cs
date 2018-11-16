@@ -1,4 +1,5 @@
-﻿// analyzer: D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabase.UselessDbAssignmentAnalyzer
+﻿// analyzer: D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabase.DbAssignmentAnalyzer
+// analyzer: D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabase.UselessDbAssignmentAnalyzer
 
 namespace D2L.LP.LayeredArch.Data {
 	public interface IDTObjectDatabase { };
@@ -28,9 +29,13 @@ namespace D2L.CodeStyle.Analyzers.UselessDbAssignmentAnaylzer.Examples {
 
 		IFoo IFactory<IFoo>.Create() {
 
+			/* DbAssignment */ IDTObjectDatabase otherDb = Thing() /**/;
+
 			/* UselessDbAssignment */ IDTObjectDatabase db = m_db; /**/
 			return new Foo( db );
 		}
+
+		private IDb<Split.Main> Thing() { }
 
 	}
 

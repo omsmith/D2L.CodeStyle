@@ -67,18 +67,36 @@ namespace D2L.CodeStyle.Analyzers.ApiUsage.IDTObjectDatabase {
 							continue;
 					}
 
-					if( !IDTObjectDatabaseFactoryAnalyzer.TryGetDbType( model, invocation, out GenericNameSyntax dbTypeReference ) ) {
-						continue;
-					}
-
 					DocumentEditor editor = await DocumentEditor
 						.CreateAsync( context.Document, context.CancellationToken )
 						.ConfigureAwait( false );
 
+					ExpressionSyntax createHost = ( invocation.Expression as MemberAccessExpressionSyntax ).Expression;
+					if( createHost is MemberAccessExpressionSyntax createHostMember ) {
+						if( createHostMember.Name.ToString() == "Instance" ) {
+							if( !IDTObjectDatabaseFactoryAnalyzer.TryGetDbFactoryInvocation( model, invocation, out ExpressionSyntax dbFactoryInvocation ) ) {
+								continue;
+							}
 
+							editor.ReplaceNode( invocation, dbFactoryInvocation.WithTriviaFrom( invocation ) );
+
+							context.RegisterCodeFix(
+								CodeAction.Create(
+									title: "Use DbFactory",
+									createChangedDocument: ct => Task.FromResult( editor.GetChangedDocument() )
+								),
+								diagnostic
+							);
+							continue;
+						}
+					}
+
+					if( !IDTObjectDatabaseFactoryAnalyzer.TryGetDbType( model, invocation, out GenericNameSyntax dbTypeReference ) ) {
+						continue;
+					}
 
 					ISymbol dbFactoryDeclarationSymbol = model
-						.GetSymbolInfo( ( invocation.Expression as MemberAccessExpressionSyntax ).Expression )
+						.GetSymbolInfo( createHost )
 						.Symbol;
 					SyntaxNode dbFactoryDeclaration = ( await dbFactoryDeclarationSymbol
 						.DeclaringSyntaxReferences[ 0 ]

@@ -51,5 +51,44 @@ namespace D2L.CodeStyle.TestAnalyzers.Common {
 			isEnabledByDefault: true,
 			description: "Custom service locators are expensive to instantiate and slow down tests significantly. Use the default locator instead."
 		);
+
+		public static readonly DiagnosticDescriptor UseAnIDbTInstead = new DiagnosticDescriptor(
+			id: "D2LTESTXX01",
+			title: "Should inject IDb<T>",
+			description: "Should inject IDb<T>",
+			messageFormat: "Should inject IDb<T>",
+			category: "Correctness",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true
+		);
+
+		public static readonly DiagnosticDescriptor UselessDbAssignment = new DiagnosticDescriptor(
+			id: "D2LTESTXX02",
+			title: "Useless DB Assignment",
+			description: "Useless DB Assignment",
+			messageFormat: "Useless DB Assignment",
+			category: "Correctness",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true
+		);
+
+		public static readonly DiagnosticDescriptor ConstructorShouldTakeIDbT = new DiagnosticDescriptor(
+			id: "D2LTESTXX03",
+			title: "Constructor should take IDb<T>",
+			description: "Constructor should take IDb<T>",
+			messageFormat: "Constructor should take IDb<T>",
+			category: "Correctness",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true
+		);
+
+		public static readonly DiagnosticDescriptor DbAssignment = new DiagnosticDescriptor(
+			id: "D2LTESTXX04",
+			title: "Update DB Assignment Type",
+			description: "Update DB Assignment Type",
+			messageFormat: "Update DB Assignment Type",
+			category: "Correctness",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true
 	}
 }
